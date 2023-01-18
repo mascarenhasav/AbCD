@@ -1,16 +1,5 @@
 '''
-Code for an Adaptative Dynamic Particle Swarm Optimization algorithm
-using DEAP library.
-
-Based on:
-"T. Blackwell and J. Branke, “Multiswarms, exclusion, and anticonvergence
-in dynamic environments,” IEEE Transactions on Evolutionary Computation,
-vol. 10, no. 4, pp. 459–472, 2006."
-and
-"D. Yazdani, B. Nasiri, A. Sepas-Moghaddam, and M. R. Meybodi, “A novel
-multi-swarm algorithm for optimization in dynamic environments based on
-particle swarm optimization,” Applied Soft Computing, vol. 13, no. 04,
-pp. 2144–2158, 2013."
+Base code of the AbCD framework.
 
 Alexandre Mascarenhas
 
@@ -147,6 +136,7 @@ def saveOptima(parameters, mpb, path):
         write = csv.writer(f)
         write.writerow(opt)
 
+
 '''
 Check if the dirs already exist, and if not, create them
 Returns the path
@@ -162,9 +152,9 @@ def checkDirs(path):
         os.mkdir(path)
     return path
 
+
 '''
-Check if the dirs already exist, and if not, create them
-Returns the path
+Anti-convergence operator
 '''
 def antiConvergence(pop, parameters, randomInit):
     nconv = 0
@@ -193,9 +183,9 @@ def antiConvergence(pop, parameters, randomInit):
 
     return randomInit
 
+
 '''
-Check if the dirs already exist, and if not, create them
-Returns the path
+Exclusion operator
 '''
 def exclusion(pop, parameters, randomInit):
     if(parameters["REXCL"]):
@@ -307,7 +297,7 @@ def changeEnvironment(mpb, parameters):
 '''
 Algorithm
 '''
-def adpso(parameters, seed):
+def abcd(parameters, seed):
     startTime = time.time()
     # Create the DEAP creators
     creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
@@ -508,7 +498,7 @@ def main():
         path = checkDirs(path)
 
     # Call the algorithm
-    adpso(parameters, seed)
+    abcd(parameters, seed)
 
     # For automatic calling of the plot functions
     if(parameters["PLOT"]):
