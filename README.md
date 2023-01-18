@@ -17,13 +17,13 @@ This repository contains both the framework code in the "codes/algorithms/adpso"
 folder and codes related to the analysis of experimental data:
 
 In <br> 
-> "codes/plot"
+> "abcd/plot"
 
 Are the codes responsible for generating the performance graphs of 
 the algorithms;
 
 In <br>
-> "codes/analysis" 
+> "abcd/analysis" 
 
 Are the codes responsible for calculating the metrics of the execution of the algorithms.
 
@@ -57,7 +57,7 @@ Are the codes responsible for calculating the metrics of the execution of the al
 
 ### Diversity control
 
-- **Anti-Convergency based**
+- **Anti-Convergence**
 
     - *ANTI_CONVERGENCE_OP: 0 or 1* (bool) -> 0 for anti-convergency OFF, 1 for anti-convergency ON
     - *AC_TYPE_OP: {1, 2, 3}* (int) -> Type of anti-convergency
