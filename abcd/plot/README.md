@@ -1,7 +1,6 @@
-The scripts is this dir are used to generate figures of error over generations from
-the data of the experiments.
+## The scripts is this dir are used to generate figures of error over generations from the data of the experiments.
 
-The setup of the plot is made by each "config.ini" file.
+### The setup of the metrics codes is made by the "config.ini" file.
 
 Also, it is necessary pass some arguments when call the script. The sintax for currentError
 and offlineError is:

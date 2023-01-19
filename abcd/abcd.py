@@ -498,8 +498,11 @@ def abcd(parameters, seed):
 
     # Evaluate the offline error
     if(parameters["OFFLINE_ERROR"]):
-        print("[METRICS]")
-        os.system(f"python3 {sys.path[0]}/metrics/offlineError.py -p {path}")
+        if (parameters["DEBUG2"]):
+            print("[METRICS]")
+            os.system(f"python3 {sys.path[0]}/metrics/offlineError.py -p {path} -d 1")
+        else:
+            os.system(f"python3 {sys.path[0]}/metrics/offlineError.py -p {path}")
 
 def main():
     global path
@@ -559,7 +562,8 @@ def main():
 
     # Call the algorithm
     abcd(parameters, seed)
-    print("\n[END]\nThx:)\n")
+    if (parameters["DEBUG2"]):
+        print("\n[END]\nThx :)\n")
 
     # For automatic calling of the plot functions
     if(parameters["PLOT"]):

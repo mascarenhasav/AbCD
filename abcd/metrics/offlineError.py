@@ -51,9 +51,10 @@ def main():
     startTime = time.time()
     arg_help = "{0} -p <path>".format(sys.argv[0])
     path = "."
+    debug = 0
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hp:", ["help", "path="])
+        opts, args = getopt.getopt(sys.argv[1:], "hp:d:", ["help", "path=", "debug="])
     except:
         print(arg_help)
         sys.exit(2)
@@ -64,6 +65,8 @@ def main():
             sys.exit(2)
         elif opt in ("-p", "--path"):
             path = arg
+        elif opt in ("-d", "--debug"):
+            debug = arg
 
     with open(f"{sys.path[0]}/config.ini") as f:
         parameters = json.loads(f.read())
@@ -71,14 +74,14 @@ def main():
     # Evaluate the offline error
     Eo = offlineError(path, std = parameters["STD_Eo"])
     writeTXT(Eo, "offlineError", path, std = parameters["STD_Eo"])
-    if(parameters["DEBUG"]):
+    if(parameters["DEBUG"] and debug):
         if(parameters["STD_Eo"]):
             print(f"\n[Offline Error]: {Eo[0]:.5f}({Eo[1]:.5f})")
         else:
             print(f"\n[Offline Error]: {Eo:.5f}")
 
     executionTime = (time.time() - startTime)
-    if(parameters["DEBUG"]):
+    if(parameters["DEBUG"] and debug):
         print(f"File generated: {path}/offlineError.txt")
         print(f'Time Exec: {str(executionTime)} s')
 

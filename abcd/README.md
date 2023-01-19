@@ -1,11 +1,13 @@
-## The scripts in this section are used to evaluate the metrics over generations from the data of the experiments.
+## Scripts to run the framework ands its analysis
 
-### The setup of the metrics codes is made by the "config.ini" file.
+### To run the algorithm the sintaxe is
 
-It is necessary pass some arguments when call the script. The sintax is:
+    $ python3 abcd.py -s seed -p path
 
-    $ python3 code.py -p "path to file data.csv of the experiment"
+where seed is a number to be the seed for the random functions of the Benchmark and path
+is the folder where is the file "config.ini" responsible to setup the algorithm and the 
+benchmark.
 
 Example:
 
-    $ python3 offlineError.py -p ../../../experiments/parameters/ADPSO-O
+    $ python3 abcd.py -s 42 -p ../examples/pso-abcd/abcd
