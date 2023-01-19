@@ -1,12 +1,21 @@
-The script PLOTcode.py is used to generate figures of error over generations from
+The scripts is this dir are used to generate figures of error over generations from
 the data of the experiments.
 
-The setup of the plot is made by the "config.ini" file.
+The setup of the plot is made by each "config.ini" file.
 
-Also, it is necessary pass some arguments when call the script. The sintax is:
+Also, it is necessary pass some arguments when call the script. The sintax for currentError
+and offlineError is:
 
-    $ python3 PLOTcode.py algorithm year-month-day hour-minute
+    $ python3 code.py -p path path1 ... path5
 
-Example:
+where path is one folder before than where the data are and
+pathX[1-5] is the folder where the data are.
 
-    $ python3 PLOTcode.py PSO 2022-12-28 13-30
+It is possible plot up to 5 datasets on the same figure.
+
+Examples:
+
+    $ python3 currentErrorPlot.py -p ../../../examples/pso-abcd pso
+
+    $ python3 currentErrorPlot.py -p ../../../examples/pso-abcd pso abcd
+

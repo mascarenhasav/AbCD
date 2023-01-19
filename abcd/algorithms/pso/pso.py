@@ -45,40 +45,32 @@ changesEnv = [0 for _ in range(100)]
 path = ""
 NCHANGES = 0
 
-
 '''
 Create the particle, with its initial position and speed
 being randomly generated
 '''
-def ale(seed, min, max):
-    return random.uniform(min, max)
-def generate(ndim, pmin, pmax, smin, smax):
-    part = creator.Particle(ale(i, pmin, pmax) for i in range(ndim))
-    part.speed = [ale(i, smin, smax) for i in range(ndim)]
+def generate(size, pmin, pmax, smin, smax):
+    part = creator.Particle(random.uniform(pmin, pmax) for _ in range(size))
+    part.speed = [random.uniform(smin, smax) for _ in range(size)]
     part.smin = smin
     part.smax = smax
     return part
 
-
 '''
-Apply PSO on the particle
+Update the position of the particles
 '''
-def PSO_particle(part, best, parameters):
-    X = (parameters["w"] for _ in range(len(part)))
-    u1 = (random.uniform(0, parameters["phi1"]) for _ in range(len(part)))
-    u2 = (random.uniform(0, parameters["phi2"]) for _ in range(len(part)))
+def updateParticle(part, best, phi1, phi2):
+    u1 = (random.uniform(0, phi1) for _ in range(len(part)))
+    u2 = (random.uniform(0, phi2) for _ in range(len(part)))
     v_u1 = map(operator.mul, u1, map(operator.sub, part.best, part))
     v_u2 = map(operator.mul, u2, map(operator.sub, best, part))
-    #part.speed = list(map(operator.add, part.speed, map(operator.add, v_u1, v_u2)))
-    part.speed = list(map(operator.mul, map(operator.add, part.speed, map(operator.add, v_u1, v_u2)), X))
+    part.speed = list(map(operator.add, part.speed, map(operator.add, v_u1, v_u2)))
     for i, speed in enumerate(part.speed):
         if abs(speed) < part.smin:
             part.speed[i] = math.copysign(part.smin, speed)
         elif abs(speed) > part.smax:
             part.speed[i] = math.copysign(part.smax, speed)
     part[:] = list(map(operator.add, part, part.speed))
-
-    return part
 
 
 '''
@@ -89,12 +81,13 @@ def createToolbox(parameters):
     BOUNDS_POS = parameters["BOUNDS_POS"]
     BOUNDS_VEL = parameters["BOUNDS_VEL"]
     toolbox = base.Toolbox()
-    toolbox.register("particle", generate, ndim=parameters["NDIM"],\
+    toolbox.register("particle", generate, size=parameters["NDIM"],\
     pmin=BOUNDS_POS[0], pmax=BOUNDS_POS[1], smin=BOUNDS_VEL[0],smax=BOUNDS_VEL[1])
     toolbox.register("population", tools.initRepeat, list, toolbox.particle)
     toolbox.register("swarm", tools.initRepeat, creator.Swarm, toolbox.particle)
+    toolbox.register("update", updateParticle, phi1=parameters["phi1"], phi2=parameters["phi2"])
+    toolbox.register("evaluate", evaluate)
     return toolbox
-
 
 '''
 Write the log of the algorithm over the generations on a csv file
@@ -112,7 +105,6 @@ def writeLog(mode, filename, header, data=None):
             csvwriter.writerows(data)
            # for i in range(len(data)):
            #     csvwriter.writerows(data[i])
-
 
 '''
 Fitness function. Returns the error between the fitness of the particle
@@ -149,7 +141,6 @@ def saveOptima(parameters, fitFunction, path):
         write = csv.writer(f)
         write.writerow(opt)
 
-
 '''
 Check if the dirs already exist, and if not, create them
 Returns the path
@@ -167,87 +158,10 @@ def checkDirs(path):
 
 
 '''
-Anti-convergence operator
-'''
-def antiConvergence(pop, typeInd, parameters, randomInit):
-    rconv = parameters["RCONV"]
-    wswarmId = None
-    wswarm = None
-    for swarmId, swarm in enumerate(pop):
-        # Compute the diameter of the swarm
-        for p1Id, p1 in enumerate(swarm, 1):
-            for p2Id, p2 in enumerate(swarm, 1):
-                if (p1 == p2) or (typeInd[p1Id] != 1) or (typeInd[p2Id] != 1):
-                    break
-                for x1, x2 in zip(p1, p2):
-                    d = math.sqrt( (x1 - x2)**2 ) # Euclidean distance between the components
-                    if d >= rconv:  # If any is greater or equal rconv, not converged
-                        nconv += 1
-                        break
-        # Search for the worst swarm according to its global best
-        if not wswarm or swarm.best.fitness < wswarm.best.fitness:
-            wswarmId = swarmId
-            wswarm = swarm
-
-    # If all swarms have converged, remember to randomize the worst
-    if nconv == 0:
-        randomInit[wswarmId] = 1
-
-    return randomInit
-
-
-'''
-Exclusion operator
-'''
-def exclusion(pop, parameters, randomInit):
-    rexcl = parameters["REXCL"]
-    for s1, s2 in itertools.combinations(range(len(pop)), 2):
-        # Swarms must have a best and not already be set to reinitialize
-        if pop[s1].best and pop[s2].best and not (randomInit[s1] or randomInit[s2]):
-            dist = 0
-            for x1, x2 in zip(pop[s1].best, pop[s2].best):
-                dist += (x1 - x2)**2
-            dist = math.sqrt(dist)
-            if dist < rexcl:
-                if pop[s1].best.fitness <= pop[s2].best.fitness:
-                    randomInit[s1] = 1
-                else:
-                    randomInit[s2] = 1
-
-    return randomInit
-
-
-'''
-Apply ES on the particle
-'''
-def ES_particle(part, sbest, parameters, P=1):
-    rcloud = parameters["RCLOUD"]
-    for i in range(parameters["NDIM"]):
-        part[i] = sbest[i] + P*(random.uniform(-1, 1)*rcloud)
-    return part
-
-
-'''
-Apply LS on the best
-'''
-def localSearch(best, toolbox, parameters, fitFunction):
-    rls  = parameters["RLS"]
-    bp = creator.Particle(best)
-    for _ in range(parameters["ETRY"]):
-        for i in range(parameters["NDIM"]):
-            bp[i] = bp[i] + random.uniform(-1, 1)*rls
-        bp.fitness.values = evaluate(bp, fitFunction, parameters=parameters)
-        if bp.fitness > best.fitness:
-            best = creator.Particle(bp)
-            best.fitness.values = bp.fitness.values
-    return best
-
-
-'''
 Check if a change occurred in the environment
 '''
 def changeDetection(swarm, toolbox, fitFunction, change, parameters):
-    sensor = evaluate(swarm.best, fitFunction, parameters=parameters)
+    sensor = toolbox.evaluate(swarm.best, fitFunction, parameters=parameters)
     if(sensor[0] != swarm.best.fitness.values[0]):
         #print(f"[CHANGE] nevals: {nevals}  sensor: {sensor}  sbest:{swarm.best.fitness.values[0]}")
         swarm.best.fitness.values = sensor
@@ -278,6 +192,7 @@ def reevaluateSwarm(swarm, toolbox, fitFunction, parameters):
 Change the environment if nevals reach the defined value
 '''
 def changeEnvironment(fitFunction, parameters):
+    # Change environment
     global changesEnv
     global nevals
     global peaks
@@ -293,7 +208,7 @@ def changeEnvironment(fitFunction, parameters):
 '''
 Algorithm
 '''
-def abcd(parameters, seed):
+def pso(parameters, seed):
     startTime = time.time()
     # Create the DEAP creators
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -322,6 +237,7 @@ def abcd(parameters, seed):
         scenario = movingpeaks.SCENARIO_2
     elif (parameters["SCENARIO_MPB"] == 3):
         scenario = movingpeaks.SCENARIO_3
+
     severity = parameters["MOVE_SEVERITY_MPB"]
     scenario["period"] = 0
     scenario["npeaks"] = parameters["NPEAKS_MPB"]
@@ -366,14 +282,9 @@ def abcd(parameters, seed):
         env = 1
         change = 0
         gen = 1
-        flagEnv = 0
         genChangeEnv = 0
+        flagEnv = 0
         eo_sum = 0
-        randomInit = [0 for _ in range(1, NSWARMS+2)]
-        typeInd = [1 for i in range(1, SWARMSIZE+2)]
-        if (parameters["RCLOUD"] > 0) and (parameters["ES_PARTICLE_PERC"] > 0):
-            for i in range(1, int(parameters["ES_PARTICLE_PERC"]*SWARMSIZE)+1):
-                typeInd[i] = 2
 
         # Initialize the benchmark for each run with seed being the minute
         rndBNK = random.Random()
@@ -394,18 +305,6 @@ def abcd(parameters, seed):
         # Repeat until reach the number of evals
         while nevals < NEVALS+1:
 
-            # Anti-convergence operator
-            if(parameters["ANTI_CONVERGENCE_OP"] and parameters["RCONV"] > 0 and gen > 2):
-                randomInit = antiConvergence(pop, typeInd, parameters, randomInit)
-
-            # Exclusion operator
-            if(parameters["EXCLUSION_OP"] and parameters["REXCL"] > 0 and gen > 2):
-                randomInit = exclusion(pop, parameters, randomInit)
-
-            # Local search operator
-            if(parameters["LOCAL_SEARCH_OP"] and parameters["RLS"] > 0 and gen > 2):
-                best = localSearch(best, toolbox, parameters, fitFunction)
-
             # PSO
             for swarmId, swarm in enumerate(pop, 1):
 
@@ -416,27 +315,15 @@ def abcd(parameters, seed):
                 if(change and swarm):
                     swarm = reevaluateSwarm(swarm, toolbox, fitFunction, parameters=parameters)
                     best = None
-                    if flagEnv == 0:
+                    if flagEnv == 0 :
                         env += 1
                         genChangeEnv = gen
                         flagEnv = 1
-                    randomInit[swarmId] = 0
 
                 for partId, part in enumerate(swarm, 1):
-                    if(gen > 2):
-                        # If convergence or exclusion, randomize the particle
-                        if(randomInit[swarmId]):
-                            part = toolbox.particle()
-                        else:
-                            # ES Particle operator
-                            if(typeInd[partId] == 1):
-                                part = PSO_particle(part, swarm.best, parameters)
-                            elif(typeInd[partId] == 2):
-                                part = ES_particle(part, swarm.best, parameters)
-
 
                     # Evaluate the particle
-                    part.fitness.values = evaluate(part, fitFunction, parameters=parameters)
+                    part.fitness.values = toolbox.evaluate(part, fitFunction, parameters=parameters)
 
                     # Check if the particles are the best of itself and best at all
                     if not part.best or part.best.fitness < part.fitness:
@@ -451,28 +338,28 @@ def abcd(parameters, seed):
 
                     # Save the log with all particles on it
                     if(parameters["LOG_ALL"]):
-                        Eo = eo_sum/gen
+                        Eo = eo_sum / gen
                         log = [{"run": run, "gen": gen, "nevals":nevals, "swarmId": swarmId, "partId": partId, "part":part, "partError": part.best.fitness.values[0], "sbest": swarm.best, "sbestError": swarm.best.fitness.values[0], "best": best, "bestError": best.fitness.values[0], "Eo": Eo, "env": env}]
                         writeLog(mode=1, filename=filename, header=header, data=log)
                         # Debugation at particle level
                         if(parameters["DEBUG0"]):
                             print(log)
 
-                # Randomization complete
-                randomInit[swarmId] = 0
+                for part in swarm:
+                    toolbox.update(part, swarm.best)
 
             eo_sum += best.fitness.values[0]
 
             # Save the log only with the bests of each generation
             if(parameters["LOG_ALL"] == 0):
-                Eo = eo_sum/gen
+                Eo = eo_sum / gen
                 log = [{"run": run, "gen": gen, "nevals":nevals, "best": best, "bestError": best.fitness.values[0], "Eo": Eo, "env": env}]
                 writeLog(mode=1, filename=filename, header=header, data=log)
 
             # Debugation at generation level
             if(parameters["DEBUG1"]):
-                Eo = eo_sum/gen
-                print(f"[RUN:{run:02}][GEN:{gen:04}][NEVALS:{nevals:06}] Best:{best.fitness.values[0]:.4f}\tEo:{Eo:.4f}")
+                Eo = eo_sum / gen
+                print(f"[RUN:{run:02}][GEN:{gen:04}][NEVALS:{nevals:06}] Best:{best.fitness.values[0]:.4f}\tEo:{Eo:4.f}")
 
             if abs(gen - genChangeEnv) > 2:
                 flagEnv = 0
@@ -480,11 +367,10 @@ def abcd(parameters, seed):
             # End of the generation
             gen += 1
 
-
         # Debugation at generation level
         if(parameters["DEBUG2"]):
-            Eo = eo_sum/gen
-            print(f"[RUN:{run:02}][NGEN:{gen:04}][NEVALS:{nevals:06}] Eo: {Eo:.4f}")
+            Eo = eo_sum / gen
+            print(f"[RUN:{run:02}][NGEN:{gen:04}][NEVALS:{nevals:06}] Eo:{Eo:.4f}")
 
     executionTime = (time.time() - startTime)
     if(parameters["DEBUG2"]):
@@ -499,7 +385,7 @@ def abcd(parameters, seed):
     # Evaluate the offline error
     if(parameters["OFFLINE_ERROR"]):
         print("[METRICS]")
-        os.system(f"python3 {sys.path[0]}/metrics/offlineError.py -p {path}")
+        os.system(f"python3 ../../metrics/offlineError.py -p {path}")
 
 def main():
     global path
@@ -525,9 +411,6 @@ def main():
     # Read the parameters from the config file
     with open(f"{path}/config.ini") as f:
         parameters = json.loads(f.read())
-    #if(parameters["DEBUG2"]):
-        #print("Parameters:")
-        #print(parameters)
 
     if path == ".":
         path = f"{parameters['PATH']}/{parameters['ALGORITHM']}"
@@ -539,26 +422,16 @@ def main():
         print(f"======================================================\n")
         print(f"[ALGORITHM SETUP]")
         print(f"- Name: {parameters['ALGORITHM']}")
-        print(f"- Percentage of ind doing ES: {parameters['ES_PARTICLE_PERC']*100}%")
-        if(parameters["ES_PARTICLE_PERC"] > 0):
-            print(f"-- [ES]: Rcloud={parameters['RCLOUD']}")
-        print(f"- Operators used:")
-        if(parameters["EXCLUSION_OP"]):
-            print(f"-- [Exlcusion]: Rexcl={parameters['REXCL']}")
-        if(parameters["ANTI_CONVERGENCE_OP"]):
-            print(f"-- [ANTI-CONVERGENCE]: Rconv={parameters['REXCL']}")
-        if(parameters["LOCAL_SEARCH_OP"]):
-            print(f"-- [LOCAL_SEARCH]: Rls={parameters['RLS']}")
-
         print()
         print(f"[BENCHMARK SETUP]")
         print(f"- Name: {parameters['BENCHMARK']}")
         print(f"- NDIM: {parameters['NDIM']}")
 
+
         print("\n[START]\n")
 
     # Call the algorithm
-    abcd(parameters, seed)
+    pso(parameters, seed)
     print("\n[END]\nThx:)\n")
 
     # For automatic calling of the plot functions

@@ -63,11 +63,11 @@ def configPlot(parameters):
 
 
 def plot(ax, data, label, fStd=0, color="orange", linestyle="-", parameters=False):
-    ax.plot(data["nevals"], data["bestError"], color=color, linestyle=linestyle, label=label)
+    ax.plot(data["nevals"], data["Eo"], color=color, linestyle=linestyle, label=label)
     if(fStd):
-        ax.fill_between(data["nevals"], data["bestError"] - data["std"], data["bestError"] + data["std"], color=color, alpha=0.1)
+        ax.fill_between(data["nevals"], data["Eo"] - data["std"], data["Eo"] + data["std"], color=color, alpha=0.1)
     ax.set_xlabel("N Evaluations", fontsize=15)
-    ax.set_ylabel("Error", fontsize=15)
+    ax.set_ylabel("Offline error", fontsize=15)
     if(parameters["YLIM"]):
         ax.set_ylim(bottom=parameters["YLIM"][0], top=parameters["YLIM"][1])
     else:
@@ -107,22 +107,22 @@ def showPlots(fig, ax, parameters, parameters2, path):
 
 
 def mean(data):
-    bMean = [0 for i in range( len(data[0]["bestError"]) )]
-    bStd = [0 for i in range( len(data[0]["bestError"]) )]
+    bMean = [0 for i in range( len(data[0]["Eo"]) )]
+    bStd = [0 for i in range( len(data[0]["Eo"]) )]
     std = [0 for i in range( len(data) )]
     sum = 0
 
-    for i in range (len(data[0]["bestError"])):
+    for i in range (len(data[0]["Eo"])):
         for j in range(len(data)):
-            sum += data[j]["bestError"][i]
-            std[j] = data[j]["bestError"][i]
+            sum += data[j]["Eo"][i]
+            std[j] = data[j]["Eo"][i]
         bMean[i] = sum/len(data)
         bStd[i] = np.std(std)
         sum = 0
         std = [0 for i in range( len(data) )]
 
     zipped = list(zip(data[0]["nevals"], bMean, bStd))
-    bestMean = pd.DataFrame(zipped, columns=["nevals", "bestError", "std"])
+    bestMean = pd.DataFrame(zipped, columns=["nevals", "Eo", "std"])
     return bestMean
 
 
@@ -166,13 +166,13 @@ def main():
         data = [[] for i in range( len(pd.unique(df["run"])) )]
         for i in range(len(pd.unique(df["run"])) ):
             data[i] = df[df["run"] == i+1]
-            data[i] = data[i].drop_duplicates(subset=["gen"], keep="last")[["gen", "nevals", "bestError", "env"]]
+            #data[i] = data[i].drop_duplicates(subset=["gen"], keep="last")[["gen", "nevals", "bestError", "Eo", "env"]]
             data[i].reset_index(inplace=True)
             if(parameters["ALLRUNS"]):
                 ax = plot(ax, data=data[i], label=f"Run {i+1}", color=colors[i], parameters=parameters)
 
-        bestMean = mean(data)
-        ax = plot(ax, data=bestMean, label=f"{parameters2['ALGORITHM']}(M{parameters2['NSWARMS']:02}ESP{parameters2['ES_PARTICLE_PERC']}ESC{parameters2['ES_CHANGE_OP']}LS{parameters2['LOCAL_SEARCH_OP']}X{parameters2['EXCLUSION_OP']}C{parameters2['ANTI_CONVERGENCE_OP']})", color=colors[j-2], linestyle=lineStyles[j-2], fStd=1, parameters=parameters)
+        EoMean = mean(data)
+        ax = plot(ax, data=EoMean, label=f"{parameters2['ALGORITHM']}(M{parameters2['NSWARMS']:02}ESP{parameters2['ES_PARTICLE_PERC']}ESC{parameters2['ES_CHANGE_OP']}LS{parameters2['LOCAL_SEARCH_OP']}X{parameters2['EXCLUSION_OP']}C{parameters2['ANTI_CONVERGENCE_OP']})", color=colors[j-2], linestyle=lineStyles[j-2], fStd=1, parameters=parameters)
 
 
     if(parameters2["RANDOM_CHANGES"]):
