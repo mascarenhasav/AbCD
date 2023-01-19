@@ -23,7 +23,7 @@ Are the codes responsible for generating the performance graphs of
 the algorithms;
 
 In <br>
-> "abcd/analysis" 
+> "abcd/metrics" 
 
 Are the codes responsible for calculating the metrics of the execution of the algorithms.
 
