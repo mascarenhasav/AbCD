@@ -44,6 +44,8 @@ env = 0
 changesEnv = [0 for _ in range(100)]
 path = ""
 NCHANGES = 0
+eo_sum = 0
+best = None
 
 
 '''
@@ -120,13 +122,19 @@ and the global optimum
 '''
 def evaluate(x, function, parameters):
     global nevals
+    global eo_sum
+    global best
     fitInd = function(x)[0]
     if(parameters["BENCHMARK"] == "MPB"):
         globalOP = function.maximums()[0][0]
     elif(parameters["BENCHMARK"] == "H1"):
         globalOP = function([8.6998, 6.7665])[0]
+
     fitness = [abs( fitInd - globalOP )]
     nevals += 1
+    if best:
+        eo_sum += best.fitness.values[0]
+
     if(parameters["CHANGE"]):
         changeEnvironment(function, parameters)
     return fitness
@@ -291,6 +299,24 @@ def changeEnvironment(fitFunction, parameters):
 
 
 '''
+Update the best individuals
+'''
+def updateBest(part, swarm, best):
+    # Check if the particles are the best of itself and best at all
+    if not part.best or part.best.fitness < part.fitness:
+        part.best = creator.Particle(part)
+        part.best.fitness.values = part.fitness.values
+    if not swarm.best or swarm.best.fitness < part.fitness:
+        swarm.best = creator.Particle(part)
+        swarm.best.fitness.values = part.fitness.values
+    if not best or best.fitness < part.fitness:
+        best = creator.Particle(part)
+        best.fitness.values = part.fitness.values
+
+    return part, swarm, best
+
+
+'''
 Algorithm
 '''
 def abcd(parameters, seed):
@@ -307,6 +333,8 @@ def abcd(parameters, seed):
     global changesEnv
     global path
     global env
+    global best
+    global eo_sum
 
     # Set the general parameters
     NEVALS = parameters["NEVALS"]
@@ -412,15 +440,15 @@ def abcd(parameters, seed):
                 # Change detection
                 if(parameters["CHANGE_DETECTION_OP"] and swarm.best):
                     change = changeDetection(swarm, toolbox, fitFunction, change=change, parameters=parameters)
+                    if(change and swarm):
+                        swarm = reevaluateSwarm(swarm, toolbox, fitFunction, parameters=parameters)
+                        best = None
+                        if flagEnv == 0:
+                            env += 1
+                            genChangeEnv = gen
+                            flagEnv = 1
+                        randomInit[swarmId] = 0
 
-                if(change and swarm):
-                    swarm = reevaluateSwarm(swarm, toolbox, fitFunction, parameters=parameters)
-                    best = None
-                    if flagEnv == 0:
-                        env += 1
-                        genChangeEnv = gen
-                        flagEnv = 1
-                    randomInit[swarmId] = 0
 
                 for partId, part in enumerate(swarm, 1):
                     if(gen > 2):
@@ -428,30 +456,22 @@ def abcd(parameters, seed):
                         if(randomInit[swarmId]):
                             part = toolbox.particle()
                         else:
-                            # ES Particle operator
+                            # Optimizer component
                             if(typeInd[partId] == 1):
                                 part = PSO_particle(part, swarm.best, parameters)
                             elif(typeInd[partId] == 2):
                                 part = ES_particle(part, swarm.best, parameters)
 
 
-                    # Evaluate the particle
-                    part.fitness.values = evaluate(part, fitFunction, parameters=parameters)
+                    # Evaluates the individual
+                    part.fitness.values = evaluate(part, fitFunction,  parameters=parameters)
 
-                    # Check if the particles are the best of itself and best at all
-                    if not part.best or part.best.fitness < part.fitness:
-                        part.best = creator.Particle(part)
-                        part.best.fitness.values = part.fitness.values
-                    if not swarm.best or swarm.best.fitness < part.fitness:
-                        swarm.best = creator.Particle(part)
-                        swarm.best.fitness.values = part.fitness.values
-                    if not best or best.fitness < part.fitness:
-                        best = creator.Particle(part)
-                        best.fitness.values = part.fitness.values
+                    # Updates the best
+                    part, swarm, best = updateBest(part, swarm, best)
 
                     # Save the log with all particles on it
                     if(parameters["LOG_ALL"]):
-                        Eo = eo_sum/gen
+                        Eo = eo_sum/nevals
                         log = [{"run": run, "gen": gen, "nevals":nevals, "swarmId": swarmId, "partId": partId, "part":part, "partError": part.best.fitness.values[0], "sbest": swarm.best, "sbestError": swarm.best.fitness.values[0], "best": best, "bestError": best.fitness.values[0], "Eo": Eo, "env": env}]
                         writeLog(mode=1, filename=filename, header=header, data=log)
                         # Debugation at particle level
@@ -461,17 +481,15 @@ def abcd(parameters, seed):
                 # Randomization complete
                 randomInit[swarmId] = 0
 
-            eo_sum += best.fitness.values[0]
-
             # Save the log only with the bests of each generation
             if(parameters["LOG_ALL"] == 0):
-                Eo = eo_sum/gen
+                Eo = eo_sum/nevals
                 log = [{"run": run, "gen": gen, "nevals":nevals, "best": best, "bestError": best.fitness.values[0], "Eo": Eo, "env": env}]
                 writeLog(mode=1, filename=filename, header=header, data=log)
 
             # Debugation at generation level
             if(parameters["DEBUG1"]):
-                Eo = eo_sum/gen
+                Eo = eo_sum/nevals
                 print(f"[RUN:{run:02}][GEN:{gen:04}][NEVALS:{nevals:06}] Best:{best.fitness.values[0]:.4f}\tEo:{Eo:.4f}")
 
             if abs(gen - genChangeEnv) > 2:
@@ -483,7 +501,7 @@ def abcd(parameters, seed):
 
         # Debugation at generation level
         if(parameters["DEBUG2"]):
-            Eo = eo_sum/gen
+            Eo = eo_sum/nevals
             print(f"[RUN:{run:02}][NGEN:{gen:04}][NEVALS:{nevals:06}] Eo: {Eo:.4f}")
 
     executionTime = (time.time() - startTime)
@@ -528,9 +546,6 @@ def main():
     # Read the parameters from the config file
     with open(f"{path}/config.ini") as f:
         parameters = json.loads(f.read())
-    #if(parameters["DEBUG2"]):
-        #print("Parameters:")
-        #print(parameters)
 
     if path == ".":
         path = f"{parameters['PATH']}/{parameters['ALGORITHM']}"
