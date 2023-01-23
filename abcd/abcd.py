@@ -181,6 +181,7 @@ def antiConvergence(pop, typeInd, parameters, randomInit):
     rconv = parameters["RCONV"]
     wswarmId = None
     wswarm = None
+    nconv = 0
     for swarmId, swarm in enumerate(pop):
         # Compute the diameter of the swarm
         for p1Id, p1 in enumerate(swarm, 1):
