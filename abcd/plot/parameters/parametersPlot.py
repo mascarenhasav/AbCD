@@ -17,13 +17,6 @@ import os
 import csv
 import sys
 import getopt
-from deap import base
-from deap import benchmarks
-from deap import creator
-from deap import tools
-from deap.benchmarks import movingpeaks
-from deap import creator
-from deap import tools
 
 cDate = datetime.datetime.now()
 year = cDate.year

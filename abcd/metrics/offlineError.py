@@ -1,7 +1,9 @@
 '''
-Code to plot graph using data file
+Code to evaluate the offline error of data file
 
 Alexandre Mascarenhas
+
+2023/1
 '''
 import json
 import shutil
@@ -11,7 +13,6 @@ import random
 import numpy as np
 import pandas as pd
 import math
-import matplotlib.pyplot as plt
 import datetime
 import os
 import csv

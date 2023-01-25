@@ -565,7 +565,7 @@ def main():
         if(parameters["EXCLUSION_OP"]):
             print(f"-- [Exlcusion]: Rexcl={parameters['REXCL']}")
         if(parameters["ANTI_CONVERGENCE_OP"]):
-            print(f"-- [ANTI-CONVERGENCE]: Rconv={parameters['REXCL']}")
+            print(f"-- [ANTI-CONVERGENCE]: Rconv={parameters['RCONV']}")
         if(parameters["LOCAL_SEARCH_OP"]):
             print(f"-- [LOCAL_SEARCH]: Rls={parameters['RLS']}")
 
