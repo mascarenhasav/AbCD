@@ -21,9 +21,9 @@ config = {
 "LOCAL_SEARCH_OP": 0,
 "ETRY": 20,
 "RLS": 0,
-"EXCLUSION_OP": 1,
+"EXCLUSION_OP": 0,
 "REXCL": 0,
-"ANTI_CONVERGENCE_OP": 0,
+"ANTI_CONVERGENCE_OP": 1,
 "RCONV": 0,
 "CHANGE": 1,
 "RANDOM_CHANGES": 0,
@@ -56,14 +56,14 @@ config = {
 algorithm = "AbCD-ES1"
 if(os.path.isdir(algorithm) == False):
     os.mkdir(algorithm)
-parameter = "REXCL"
+parameter = "RCONV"
 
 path = f"{algorithm}/{parameter}"
 pathParameter = ""
 if(os.path.isdir(path) == False):
     os.mkdir(path)
 
-values = [round(i,2) for i in np.arange(17.0, 51.0, 1.0)]
+values = [round(i,2) for i in np.arange(2, 52.0, 2.0)]
 #values = [1.0]
 
 for i in values:
