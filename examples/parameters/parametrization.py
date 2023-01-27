@@ -14,7 +14,7 @@ config = {
 "BOUNDS_POS": [0, 100],
 "BOUNDS_VEL": [-5, 5],
 "CHANGE_DETECTION_OP": 1,
-"NSWARMS": 10,
+"NSWARMS": 1,
 "ES_PARTICLE_PERC": 1,
 "ES_CHANGE_OP": 0,
 "RCLOUD": 1,
@@ -23,7 +23,7 @@ config = {
 "RLS": 0,
 "EXCLUSION_OP": 0,
 "REXCL": 0,
-"ANTI_CONVERGENCE_OP": 1,
+"ANTI_CONVERGENCE_OP": 0,
 "RCONV": 0,
 "CHANGE": 1,
 "RANDOM_CHANGES": 0,
@@ -56,14 +56,14 @@ config = {
 algorithm = "AbCD-ES1"
 if(os.path.isdir(algorithm) == False):
     os.mkdir(algorithm)
-parameter = "RCONV"
+parameter = "RCLOUD"
 
 path = f"{algorithm}/{parameter}"
 pathParameter = ""
 if(os.path.isdir(path) == False):
     os.mkdir(path)
 
-values = [round(i,2) for i in np.arange(2, 52.0, 2.0)]
+values = [round(i,2) for i in np.arange(0.1, 2, 0.1)]
 #values = [1.0]
 
 for i in values:
@@ -74,4 +74,4 @@ for i in values:
     with open(f"{pathParameter}/config.ini", "w") as convert_file:
         convert_file.write(json.dumps(config))
     print(f"{pathParameter}")
-    os.system(f"python3 ../../abcd/abcd.py -s 42 -p {pathParameter}")
+    os.system(f"python3 ../../abcd/abcd.py -s 412 -p {pathParameter}")
