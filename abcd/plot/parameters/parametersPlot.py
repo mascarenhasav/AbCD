@@ -25,22 +25,26 @@ day = cDate.day
 hour = cDate.hour
 minute = cDate.minute
 
-colors = ["#afafaf", "#820e57", "orange", "red", "green", "blue", "yellow"]
+colors = ["orange", "#820e57", "#afafaf", "red", "green", "blue", "yellow"]
 lineStyles = ["dashdot", "dotted", "dashed", ":", "solid"]
+markers = [".", "x", "^"]
 
 def configPlot(parameters):
     THEME = parameters["THEME"]
-    plt.rcParams["figure.figsize"] = (16, 9)
+
     if(THEME == 1):
         plt.style.use("dark_background")
         plt.rcParams["axes.facecolor"] = "cornsilk"
         plt.rcParams["savefig.facecolor"] = "#1c1c1c"
+        plt.rcParams["figure.figsize"] = (16, 9)
     elif(THEME == 2):
         plt.style.use("dark_background")
         plt.rcParams["axes.facecolor"] = "#1c1c1c"
         plt.rcParams["savefig.facecolor"] = "#1c1c1c"
+        plt.rcParams["figure.figsize"] = (16, 9)
     elif(THEME == 3):
         plt.rcParams["axes.facecolor"] = "white"
+        plt.rcParams["figure.figsize"] = (8, 8)
 
     fig, ax = plt.subplots(1)
     if(parameters["GRID"] == 1):
@@ -53,8 +57,8 @@ def configPlot(parameters):
 
 
 
-def plot(ax, data, label, fStd=0, color="orange", linestyle="-", parameters=False):
-    ax.plot(data.iloc[:, 0], data.iloc[:, 1], color=color, linestyle=linestyle, label=label, marker=".", markersize=10)
+def plot(ax, data, label, fStd=0, color="orange", linestyle="-", markers=".", parameters=False):
+    ax.plot(data.iloc[:, 0], data.iloc[:, 1], color=color, linestyle=linestyle, label=label, marker=markers, markersize=10)
     if(fStd):
         ax.fill_between(data.iloc[:, 0], data.iloc[:, 1] - data.iloc[:, 2], data.iloc[:, 1] + data.iloc[:, 2], color=color, alpha=0.1)
     ax.set_xlabel(f"{label}", fontsize=12)
@@ -72,7 +76,6 @@ def plot(ax, data, label, fStd=0, color="orange", linestyle="-", parameters=Fals
 
 
 
-
 def showPlots(fig, ax, parameters, parameters2, path):
 #    path = f"{parameters['PATH']}/{parameters['ALGORITHM']}/{sys.argv[1]}/{sys.argv[2]}"
     THEME = parameters["THEME"]
@@ -85,12 +88,15 @@ def showPlots(fig, ax, parameters, parameters2, path):
         text.set_fontsize(14)
     title = parameters["TITLE"]
     if(parameters["TITLE"] == 0):
-        title = f"{parameters['ALGORITHM']} on {parameters['BENCHMARK']} \n \
-                POPSIZE: {parameters2['POPSIZE']}   \
-                NPEAKS: {parameters2['NPEAKS_MPB']}\
-                DIM: {parameters2['NDIM']}\
-                SEVERITY: {parameters2['MOVE_SEVERITY_MPB']} \
-                "
+        if(parameters["THEME"] == 3):
+            title = f"{parameters['ALGORITHM']} on {parameters['BENCHMARK']}"
+        else:
+            title = f"{parameters['ALGORITHM']} on {parameters['BENCHMARK']} \n \
+                     POPSIZE: {parameters2['POPSIZE']}   \
+                     NPEAKS: {parameters2['NPEAKS_MPB']}\
+                     DIM: {parameters2['NDIM']}\
+                     SEVERITY: {parameters2['MOVE_SEVERITY_MPB']} \
+                     "
     ax.set_title(title, fontsize=16)
     ax.set_xlabel("RLS, REXCL and RCONV", fontsize=12)
     if(parameters["NAME"]==0):
@@ -178,7 +184,7 @@ def main():
     df[1]["rexcl"], df[1]["rexcl_oe"], df[1]["rexcl_oe_std"] = parameterOe(f"{path}/REXCL")
     df[2]["rconv"], df[2]["rconv_oe"], df[2]["rconv_oe_std"] = parameterOe(f"{path}/RCONV")
 
-    PARA = ["RLS", "REXCL", "RCONV"]
+    PARA = ["RLS", "REXCL"]
 
     with open(f"{path}/RLS/0.0/config.ini") as f:
         parameters2 = json.loads(f.read())
@@ -189,6 +195,7 @@ def main():
                 label=parameter,
                 color=colors[i],
                 linestyle=lineStyles[i],
+                markers=markers[i],
                 fStd=1,
                 parameters=parameters)
 

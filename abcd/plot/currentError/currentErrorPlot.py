@@ -19,13 +19,6 @@ import os
 import csv
 import sys
 import getopt
-from deap import base
-from deap import benchmarks
-from deap import creator
-from deap import tools
-from deap.benchmarks import movingpeaks
-from deap import creator
-from deap import tools
 
 cDate = datetime.datetime.now()
 year = cDate.year
@@ -36,20 +29,23 @@ minute = cDate.minute
 
 colors = ["#afafaf", "#820e57", "orange", "red", "green", "blue", "yellow"]
 lineStyles = ["dashdot", "dotted", "dashed", ":", "solid"]
+markers = [".", "x", "^"]
 
 def configPlot(parameters):
     THEME = parameters["THEME"]
-    plt.rcParams["figure.figsize"] = (16, 9)
     if(THEME == 1):
         plt.style.use("dark_background")
         plt.rcParams["axes.facecolor"] = "cornsilk"
         plt.rcParams["savefig.facecolor"] = "#1c1c1c"
+        plt.rcParams["figure.figsize"] = (16, 9)
     elif(THEME == 2):
         plt.style.use("dark_background")
         plt.rcParams["axes.facecolor"] = "#1c1c1c"
         plt.rcParams["savefig.facecolor"] = "#1c1c1c"
+        plt.rcParams["figure.figsize"] = (16, 9)
     elif(THEME == 3):
         plt.rcParams["axes.facecolor"] = "white"
+        plt.rcParams["figure.figsize"] = (8, 8)
 
     fig, ax = plt.subplots(1)
     if(parameters["GRID"] == 1):
@@ -62,12 +58,12 @@ def configPlot(parameters):
 
 
 
-def plot(ax, data, label, fStd=0, color="orange", linestyle="-", parameters=False):
-    ax.plot(data["nevals"], data["bestError"], color=color, linestyle=linestyle, label=label)
+def plot(ax, data, label, fStd=0, color="orange", linestyle="-", marker=".", parameters=False):
+    ax.plot(data["nevals"], data["bestError"], color=color, linestyle=linestyle, marker=marker, markersize=0, label=label)
     if(fStd):
         ax.fill_between(data["nevals"], data["bestError"] - data["std"], data["bestError"] + data["std"], color=color, alpha=0.1)
-    ax.set_xlabel("N Evaluations", fontsize=15)
-    ax.set_ylabel("Error", fontsize=15)
+    ax.set_xlabel("Evaluations", fontsize=15)
+    ax.set_ylabel("Current error", fontsize=15)
     if(parameters["YLIM"]):
         ax.set_ylim(bottom=parameters["YLIM"][0], top=parameters["YLIM"][1])
     else:
@@ -94,12 +90,15 @@ def showPlots(fig, ax, parameters, parameters2, path):
         text.set_fontsize(14)
     title = parameters["TITLE"]
     if(parameters["TITLE"] == 0):
-        title = f"{parameters['ALGORITHM']} on {parameters['BENCHMARK']} \n\n \
-                POPSIZE: {parameters2['POPSIZE']}   \
-                NPEAKS: {parameters2['NPEAKS_MPB']}\
-                DIM: {parameters2['NDIM']}\
-                SEVERITY: {parameters2['MOVE_SEVERITY_MPB']} \
-                "
+        if(parameters["THEME"] == 3):
+            title = f"{parameters['ALGORITHM']} on {parameters['BENCHMARK']}"
+        else:
+            title = f"{parameters['ALGORITHM']} on {parameters['BENCHMARK']} \n\n \
+                    POPSIZE: {parameters2['POPSIZE']}   \
+                    NPEAKS: {parameters2['NPEAKS_MPB']}\
+                    DIM: {parameters2['NDIM']}\
+                    SEVERITY: {parameters2['MOVE_SEVERITY_MPB']} \
+                    "
     ax.set_title(title, fontsize=20)
     plt.savefig(f"{path}/{parameters['NAME']}", format="png")
     plt.show()
@@ -172,7 +171,10 @@ def main():
                 ax = plot(ax, data=data[i], label=f"Run {i+1}", color=colors[i], parameters=parameters)
 
         bestMean = mean(data)
-        ax = plot(ax, data=bestMean, label=f"{parameters2['ALGORITHM']}(M{parameters2['NSWARMS']:02}ESP{parameters2['ES_PARTICLE_PERC']}ESC{parameters2['ES_CHANGE_OP']}LS{parameters2['LOCAL_SEARCH_OP']}X{parameters2['EXCLUSION_OP']}C{parameters2['ANTI_CONVERGENCE_OP']})", color=colors[j-2], linestyle=lineStyles[j-2], fStd=1, parameters=parameters)
+        if(parameters["THEME"] == 3):
+            ax = plot(ax, data=bestMean, label=f"{parameters2['ALGORITHM']}", color=colors[j-2], linestyle=lineStyles[j-2], marker=markers[j-2], fStd=1, parameters=parameters)
+        else:
+            ax = plot(ax, data=bestMean, label=f"{parameters2['ALGORITHM']}(M{parameters2['NSWARMS']:02}ESP{parameters2['ES_PARTICLE_PERC']}ESC{parameters2['ES_CHANGE_OP']}LS{parameters2['LOCAL_SEARCH_OP']}X{parameters2['EXCLUSION_OP']}C{parameters2['ANTI_CONVERGENCE_OP']})", color=colors[j-2], linestyle=lineStyles[j-2], marker=markers[j-2], fStd=1, parameters=parameters)
 
 
     if(parameters2["RANDOM_CHANGES"]):
@@ -180,8 +182,10 @@ def main():
     else:
         changesEnv = parameters2["CHANGES_NEVALS"]
     #changesEnv = data[0].ne(data[0].shift()).filter(like="env").apply(lambda x: x.index[x].tolist())["env"][1:]
-    for i in changesEnv:
-        plt.axvline(int(i), color="black", linestyle="--")
+    if(parameters["THEME"] != 3):
+        for i in changesEnv:
+            plt.axvline(int(i), color="black", linestyle="--")
+
     showPlots(fig, ax, parameters, parameters2, path)
 
 
