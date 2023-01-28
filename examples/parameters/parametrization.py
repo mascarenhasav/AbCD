@@ -15,9 +15,9 @@ config = {
 "BOUNDS_VEL": [-5, 5],
 "CHANGE_DETECTION_OP": 1,
 "NSWARMS": 1,
-"ES_PARTICLE_PERC": 0,
+"ES_PARTICLE_PERC": 1,
 "ES_CHANGE_OP": 0,
-"RCLOUD": 1,
+"RCLOUD": 0.01,
 "LOCAL_SEARCH_OP": 0,
 "ETRY": 20,
 "RLS": 0,
@@ -53,21 +53,22 @@ config = {
 "DEBUG0": 0
 }
 
-algorithm = "test5"
+algorithm = "AbCD-ES1"
 if(os.path.isdir(algorithm) == False):
     os.mkdir(algorithm)
-parameter = "BOUNDS_VEL"
+parameter = "RCLOUD"
 
 path = f"{algorithm}/{parameter}"
 pathParameter = ""
 if(os.path.isdir(path) == False):
     os.mkdir(path)
 
-#values = [round(i,2) for i in np.arange(0.1, 2, 0.1)]
-values = [100]
+#values = [round(i,2) for i in np.arange(0.01, 1.01, 0.2)]
+values = [2.0]
+#values = [100]
 
 for i in values:
-    #config[parameter] = i
+    config[parameter] = i
     pathParameter = path + f"/{i}"
     if(os.path.isdir(pathParameter) == False):
         os.mkdir(pathParameter)
