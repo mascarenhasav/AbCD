@@ -400,7 +400,7 @@ def abcd(parameters, seed):
         eo_sum = 0
         randomInit = [0 for _ in range(1, NSWARMS+2)]
         typeInd = [1 for i in range(1, SWARMSIZE+2)]
-        if (parameters["RCLOUD"] > 0) and (parameters["ES_PARTICLE_PERC"] > 0):
+        if (parameters["RCLOUD"] >= 0) and (parameters["ES_PARTICLE_PERC"] > 0):
             for i in range(1, int(parameters["ES_PARTICLE_PERC"]*SWARMSIZE)+1):
                 typeInd[i] = 2
 

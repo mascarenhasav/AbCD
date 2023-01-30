@@ -17,7 +17,7 @@ config = {
 "NSWARMS": 1,
 "ES_PARTICLE_PERC": 1,
 "ES_CHANGE_OP": 0,
-"RCLOUD": 0.01,
+"RCLOUD": 0.05,
 "LOCAL_SEARCH_OP": 0,
 "ETRY": 20,
 "RLS": 0,
@@ -64,7 +64,7 @@ if(os.path.isdir(path) == False):
     os.mkdir(path)
 
 #values = [round(i,2) for i in np.arange(0.01, 1.01, 0.2)]
-values = [2.0]
+values = [20.0, 30.0, 40.0, 50.0]
 #values = [100]
 
 for i in values:
