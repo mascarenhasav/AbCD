@@ -48,8 +48,8 @@ for value in dirs1:
     for values2 in dirValues:
         #int(f"{pathTmp}/{values2}")
         print(f"{pathTmp}/{values2}")
-        if(os.path.isfile(f"{pathTmp}/{values2}/offlineError.txt")):
+        if(os.path.isfile(f"{pathTmp}/{values2}/bebc.txt")):
             print("Ja tem")
         else:
             #print("Nao tem")
-            os.system(f"python3 offlineError.py {pathTmp}/{values2}")
+            os.system(f"python3 bestBeforeChange.py -p {pathTmp}/{values2}")
