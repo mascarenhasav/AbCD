@@ -16,6 +16,8 @@ import datetime
 import os
 import csv
 import sys
+import time
+import getopt
 
 cDate = datetime.datetime.now()
 year = cDate.year
@@ -24,12 +26,16 @@ day = cDate.day
 hour = cDate.hour
 minute = cDate.minute
 
-def writeTXT(data, name, path):
-    line = f"- {name}= {data[0]:.4f}({data[1]:.4f})\n"
-    print(line)
-    f = open(f"{path}/results.txt","a")
+
+def writeTXT(data, name, path, std):
+    if(std):
+        line = f"{data[0]:.5f}\t{data[1]:.5f}"
+    else:
+        line = f"{data:.5f}"
+    f = open(f"{path}/{name}.txt","w")
     f.write(line)
     f.close()
+
 
 def bestErrorBeforeChange(path, std=1):
     df = pd.read_csv(f"{path}/data.csv")
@@ -56,20 +62,43 @@ def bestErrorBeforeChange(path, std=1):
 
 
 def main():
-    # reading the parameters from the config file
-    try:
-        path = sys.argv[1]
-    except IndexError:
-        with open("./config.ini") as f:
-            parameters = json.loads(f.read())
-        debug = parameters["DEBUG"]
-        if(debug):
-            print("Parameters:")
-            print(parameters)
-        #path = f"{parameters['PATH']}/{parameters['ALGORITHM']}/{sys.argv[1]}/{sys.argv[2]}"
+    startTime = time.time()
+    arg_help = "{0} -p <path>".format(sys.argv[0])
+    path = "."
+    debug = 0
 
-    bobc = bestErrorBeforeChange(path, 0)
-    print(bobc)
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hp:d:", ["help", "path=", "debug="])
+    except:
+        print(arg_help)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            print(arg_help)  # print the help message
+            sys.exit(2)
+        elif opt in ("-p", "--path"):
+            path = arg
+        elif opt in ("-d", "--debug"):
+            debug = arg
+
+    with open(f"{sys.path[0]}/config.ini") as f:
+        parameters = json.loads(f.read())
+
+    # Evaluate the offline error
+    Eb = bestErrorBeforeChange(path, std = parameters["STD_Eb"])
+    writeTXT(Eb, "bebc", path, std = parameters["STD_Eb"])
+    if(parameters["DEBUG"] and debug):
+        if(parameters["STD_Eb"]):
+            print(f"\n[Best error before change]: {Eb[0]:.5f}({Eb[1]:.5f})")
+        else:
+            print(f"\n[Best error before change]: {Eb:.5f}")
+
+    executionTime = (time.time() - startTime)
+    if(parameters["DEBUG"] and debug):
+        print(f"File generated: {path}/bebc.txt")
+        print(f'Time Exec: {str(executionTime)} s')
+
 
 
 if __name__ == "__main__":
