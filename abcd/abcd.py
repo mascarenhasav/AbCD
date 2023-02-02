@@ -523,6 +523,13 @@ def abcd(parameters, seed):
         else:
             os.system(f"python3 {sys.path[0]}/metrics/offlineError.py -p {path}")
 
+    if(parameters["BEBC_ERROR"]):
+        if (parameters["DEBUG2"]):
+            print("[METRICS]")
+            os.system(f"python3 {sys.path[0]}/metrics/bestBeforeChange.py -p {path} -d 1")
+        else:
+            os.system(f"python3 {sys.path[0]}/metrics/bestBeforeChange.py -p {path}")
+
 def main():
     global path
     seed = minute

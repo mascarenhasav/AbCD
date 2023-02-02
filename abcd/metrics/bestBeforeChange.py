@@ -42,7 +42,7 @@ def bestErrorBeforeChange(path, std=1):
     data = [[] for i in range( len(pd.unique(df["run"])) )]
     for i in range(len(pd.unique(df["run"])) ): # Get the number of runs
         data[i] = df[df["run"] == i+1]
-        data[i] = data[i].drop_duplicates(subset=["env"], keep="last")[["gen", "nevals", "swarmId", "bestError", "env"]]
+        data[i] = data[i].drop_duplicates(subset=["env"], keep="last")[["gen", "nevals", "bestError", "env"]]
         data[i].reset_index(inplace=True)
         del data[i]["index"]
         #data[i].to_csv(f"{path}/run{i+1}.csv", index = True)

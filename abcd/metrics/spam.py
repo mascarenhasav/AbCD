@@ -30,7 +30,7 @@ for root, dirs, files in os.walk(path, topdown=False):
         dirValues.append(os.path.join(name))
 dirValues.sort()
 
-dirs1 = dirValues[-3:]
+dirs1 = dirValues[-1:]
 
 print(dirs1)
 
@@ -43,7 +43,7 @@ for value in dirs1:
     dirValues = list()
     for root, dirs, files in os.walk(pathTmp, topdown=False):
         for name in dirs:
-            dirValues.append(float(os.path.join(name)))
+            dirValues.append(int(os.path.join(name)))
     dirValues.sort()
     for values2 in dirValues:
         #int(f"{pathTmp}/{values2}")
