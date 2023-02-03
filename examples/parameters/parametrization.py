@@ -3,28 +3,28 @@ import os
 import json
 
 config = {
-"ALGORITHM": "AbCD",
+"ALGORITHM": "mQSO",
 "BENCHMARK": "MPB",
 "RUNS": 50,
 "NEVALS": 500000,
 "POPSIZE": 100,
-"phi1": 2.05,
-"phi2": 2.05,
-"w": 0.729,
+"phi1": 1.4962,
+"phi2": 1.4962,
+"w": 1,
 "BOUNDS_POS": [0, 100],
 "BOUNDS_VEL": [-5, 5],
 "CHANGE_DETECTION_OP": 1,
 "NSWARMS": 10,
-"ES_PARTICLE_PERC": 1,
+"ES_PARTICLE_PERC": 0.5,
 "ES_CHANGE_OP": 0,
-"RCLOUD": 0.05,
+"RCLOUD": 1,
 "LOCAL_SEARCH_OP": 0,
-"ETRY": 20,
-"RLS": 0,
-"EXCLUSION_OP": 0,
-"REXCL": 0,
+"ETRY": 2,
+"RLS": 2.35,
+"EXCLUSION_OP": 1,
+"REXCL": 22.9,
 "ANTI_CONVERGENCE_OP": 1,
-"RCONV": 0,
+"RCONV": 39.7,
 "CHANGE": 1,
 "RANDOM_CHANGES": 0,
 "NCHANGES": 99,
@@ -54,10 +54,10 @@ config = {
 "DEBUG0": 0
 }
 
-algorithm = "gecco/AbCD-ES1"
+algorithm = "mQSO"
 if(os.path.isdir(algorithm) == False):
     os.mkdir(algorithm)
-parameter = "RCONV"
+parameter = "10-10-1"
 
 path = f"{algorithm}/{parameter}"
 pathParameter = ""
@@ -65,12 +65,12 @@ if(os.path.isdir(path) == False):
     os.mkdir(path)
 
 #values = [round(i,2) for i in np.arange(0.5, 30, 0.5)]
-values = [0.0, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0]
+#values = [0.0, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0]
 #values = [10.0, 20.0, 30.0, 40.0, 50.0]
-#values = [100]
+values = [100]
 
 for i in values:
-    config[parameter] = i
+    #config[parameter] = i
     pathParameter = path + f"/{i}"
     if(os.path.isdir(pathParameter) == False):
         os.mkdir(pathParameter)
