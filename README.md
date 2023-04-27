@@ -11,8 +11,6 @@ Another characteristic is the possibility of configuring the parameters of both 
 optimizers (PSO, ES) and the characteristics of the Benchmark, which until now consists 
 of the Moving Peak Benchmark (MPB).
 
-Naisu.2
-
 ## Contents
 
 This repository contains both the framework code in the "codes/algorithms/adpso" 
