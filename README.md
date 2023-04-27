@@ -11,7 +11,7 @@ Another characteristic is the possibility of configuring the parameters of both 
 optimizers (PSO, ES) and the characteristics of the Benchmark, which until now consists 
 of the Moving Peak Benchmark (MPB).
 
-Naisu.
+Naisu.2
 
 ## Contents
 
